@@ -417,7 +417,6 @@ section.blk,.simple,.fig,.demo{scroll-margin-top:20px}
 /* redesign-v1 */
 body{font-size:16px}
 /* one family: no italic serif for English terms */
-.lat{font-family:var(--f-body);font-style:normal;letter-spacing:0;direction:ltr;unicode-bidi:isolate}
 /* sidebar: wider, larger, quieter */
 @media (min-width:861px){.app{grid-template-columns:320px minmax(0,1fr)}}
 .brand h1{font-size:23px}
@@ -442,24 +441,27 @@ body{font-size:16px}
 .tn{font-size:14.5px;line-height:1.35}
 .tl{display:none}
 .hot{background:none;padding:0;font-size:12px;font-weight:500}
-.side-foot{display:none}
+.side-foot{padding:10px 24px 16px}
 .about{font-size:12.5px!important;margin:0 24px 12px!important;color:var(--fg-3)}
 /* home (connected map): no glow, one clear action */
-.net{background:var(--bg)}
-.hub-core{animation:none;background:var(--surface);box-shadow:0 0 0 2px var(--accent)}
-.br-card{box-shadow:0 0 0 1.5px var(--c)}
-.br.open .br-card,.br.rel .br-card{box-shadow:0 0 0 2.5px var(--c)}
 .net-head{max-width:440px}
 .net-head .eyebrow,.ov-title .eyebrow,.ov-head .eyebrow,.toc-h{letter-spacing:0}
 .net-head h2{font-size:44px}
 .net-head p{font-size:15px}
 .cta-wrap{display:grid;justify-items:start;gap:8px;margin-top:18px;pointer-events:auto;max-width:300px}
-.net .cta-wrap{position:absolute;z-index:3;bottom:22px;inset-inline-end:28px;margin:0;justify-items:end;text-align:end;max-width:280px}
+.net .cta-wrap{position:absolute;z-index:3;top:80px;inset-inline-end:28px;margin:0;justify-items:end;text-align:end;max-width:260px}
+.back-map{margin-inline-start:0!important}
+.ov-top .back-map{order:-1}
 .cta{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:16px;white-space:nowrap}
 .cta:hover{filter:brightness(1.07)}
 .cta-wrap small{font-size:13.5px;color:var(--fg-3);line-height:1.45}
 .ov-top .cta-wrap{margin-top:0}
 .net-tools button{font-size:14px}
+/* map topic cards: a row of 8 heat dots + a tag was wider than the card and pushed its text off the padding */
+.tp-card{grid-template-columns:minmax(0,1fr)}
+.tp-meta{flex-wrap:wrap;row-gap:4px;min-width:0}
+.tp-card .heat{gap:2px}
+.tp-card .heat i{width:6px;height:6px}
 .net-legend{font-size:13px}
 /* topic page */
 .crumb{font-size:14px}
@@ -1172,7 +1174,7 @@ function renderOverview(){
         <h2>מפת הקורס</h2>
         <p>ארבעה פרקים, לפי סדר ההוראה. כל כרטיס הוא נושא עם עמוד מלא. הנקודות אומרות כמה פעמים הנושא נשאל ב-6 מבחני העבר.</p>
       </div>
-      <div class="cta-wrap"><button class="cta" data-go="quiz">לתרגל 10 שאלות ←</button><small>ממבחני עבר ומהחידונים בכיתה, עם הסבר לכל תשובה</small></div>
+      <div class="cta-wrap"><button class="space-btn back-map" data-go="overview">→ חזרה למפה המחוברת</button><button class="cta" data-go="quiz">לתרגל 10 שאלות ←</button><small>ממבחני עבר ומהחידונים בכיתה, עם הסבר לכל תשובה</small></div>
       <div class="ov-stats">
         <div><b class="num">${done}<small>/${NOPEN}</small></b><span>סימנת "למדתי"</span></div>
         <div><b class="num">${N.filter(n => isHot(n) && store.marks[n.id] !== "done").length}</b><span>נושאים חמים שנשארו</span></div>
