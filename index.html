@@ -415,6 +415,41 @@ section.blk,.simple,.fig,.demo{scroll-margin-top:20px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 
 /* redesign-v1 */
+/* sidebar: chapters stand out, a progress ring per chapter, the AI note at the bottom */
+.about{order:1;margin-top:8px!important}
+.side-foot{order:2}
+.ch-head{gap:12px;padding:11px 12px}
+.ch-ring{width:24px;height:24px;flex:none;display:block}
+.ch-ring circle{fill:none;stroke-width:3.2}
+.ch-ring .rb{stroke:var(--surface-3)}
+.ch-ring .rf{stroke:var(--c);stroke-linecap:round;transition:stroke-dasharray .5s}
+.ch.fut .ch-ring .rb{stroke-dasharray:2.5 3}
+.ch-name{font-size:16px;font-weight:600;color:var(--fg)}
+.ch.fut .ch-name{color:var(--fg-2);font-weight:500}
+.ch-bar{display:none}
+.ch:not(.closed){background:color-mix(in srgb,var(--surface-2) 45%,transparent);border-radius:10px;padding-bottom:6px}
+.tn{font-size:15px;color:var(--fg)}
+.tbtn{padding:8px 12px 8px 10px}
+/* practice: reset */
+.qtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.qreset{padding:8px 14px;border-radius:20px;background:var(--surface-2);font-size:13.5px;color:var(--fg-2)}
+.qreset:hover{background:var(--surface-3);color:var(--fg)}
+/* list view: taught chapters first, chapters still to come folded so they do not stretch the page */
+.board{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.board>.col{flex:1 1 calc(25% - 14px);min-width:200px}
+.board>.col.fut{flex:1 1 calc(20% - 14px);min-width:160px}
+.col.fut:not(.open) .tiles,.col.fut:not(.open) .col-bar{display:none}
+.col.fut .col-head{cursor:pointer}
+.col.fut .col-head::after{content:"הצג ▾";margin-inline-start:auto;font-size:12.5px;color:var(--fg-3);white-space:nowrap}
+.col.fut.open .col-head::after{content:"הסתר ▴"}
+.col.fut{padding:14px 14px 12px;box-shadow:inset 0 3px 0 color-mix(in srgb,var(--c) 70%,transparent)}
+.col.fut .col-n{display:none}
+.col.fut .col-head{flex-wrap:wrap;row-gap:2px;padding:0}
+.col.fut .col-head>div{flex:1 1 100%}
+.col.fut .col-head h3{font-size:17px;white-space:nowrap}
+.col.fut .col-head span{white-space:nowrap}
+.col.fut .col-head::after{flex-basis:100%;margin:6px 0 0;text-align:start}
+
 body{font-size:16px}
 /* one family: no italic serif for English terms */
 /* sidebar: wider, larger, quieter */
@@ -573,12 +608,16 @@ const isHot = n => n.hot || (n.L||0) + (n.S||0) >= 3;
 
 /* ---------- sidebar ---------- */
 const chEl = document.getElementById("chapters");
+function chRing(done, total){
+  const C = 50.27, f = total ? done / total : 0;
+  return `<svg class="ch-ring" viewBox="0 0 24 24" aria-hidden="true"><circle class="rb" cx="12" cy="12" r="8"/><circle class="rf" cx="12" cy="12" r="8" stroke-dasharray="${(f * C).toFixed(2)} ${C}" transform="rotate(-90 12 12)" ${f ? "" : 'style="display:none"'}/></svg>`;
+}
 function renderSide(){
   chEl.innerHTML = ORDER.map(b => {
     const ns = N.filter(n => n.b === b), done = ns.filter(n => store.marks[n.id] === "done").length;
     const closed = store.closed && b in store.closed ? store.closed[b] : !!BR[b].future;
     return `<div class="ch ${closed ? "closed" : ""} ${BR[b].future ? "fut" : ""}" style="--c:${col(b)}">
-      <button class="ch-head" data-ch="${b}" aria-expanded="${!closed}"><span class="ch-dot"></span><span class="ch-name">${esc(BR[b].name)}${BR[b].future ? ' <small>בקרוב</small>' : ""}</span><span class="ch-count num">${done}/${ns.length}</span><span class="ch-car" aria-hidden="true">‹</span></button>
+      <button class="ch-head" data-ch="${b}" aria-expanded="${!closed}">${chRing(done, ns.length)}<span class="ch-name">${esc(BR[b].name)}${BR[b].future ? ' <small>בקרוב</small>' : ""}</span><span class="ch-count num">${done}/${ns.length}</span><span class="ch-car" aria-hidden="true">‹</span></button>
       <div class="ch-bar"><i style="width:${ns.length?done/ns.length*100:0}%"></i></div>
       <ul class="tlist">${ns.map(n => `<li><button class="tbtn" data-t="${n.id}">
         <span class="tmark ${store.marks[n.id]||""}"></span>
@@ -856,7 +895,7 @@ function renderQuiz(reset){
   if (reset || (!qState.order.length && !qState.done)) { qState.order = quizPool(); qState.i = 0; qState.sc = {past:[0,0], extra:[0,0]}; qState.streak = 0; qState.best = 0; qState.wrongT = []; qState.grad = 0; qState.done = false; qState.res = []; }
   const cur = qState.done ? null : qState.order[qState.i];
   const filters = [["all","הכל"],...ORDER.filter(b => N.some(n => n.b === b && (n.exam||[]).length)).map(b=>[b,BR[b].name]),["miss",`השאלות שטעיתי (${missCount()})`],["again","מסומנים 'לחזור'"]];
-  const head = `<h2>תרגול</h2>
+  const head = `<div class="qtop"><h2>תרגול</h2><button class="qreset" id="qReset" title="מוחק את חבילת השאלות שטעית בהן ומתחיל סבב חדש">איפוס התרגול</button></div>
     <p class="sub">סבבים של ${ROUND} שאלות. שאלה שטעית בה נכנסת לחבילת "השאלות שטעיתי", חוזרת בסבבים הבאים, ויוצאת אחרי שתי תשובות נכונות ברצף.</p>
     <div class="seg qsrc" role="group" aria-label="מקור השאלות">${[["past","ממבחני עבר"],["extra","שאלות נוספות"],["all","הכל"]].map(([k,l]) => `<button data-src="${k}" aria-pressed="${qState.source===k}">${l}</button>`).join("")}</div>
     <details class="pat"><summary>איך המבחן מטעה: 6 דפוסים שחוזרים</summary><ul>${PATTERNS.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></details>
@@ -880,6 +919,7 @@ function renderQuiz(reset){
   } else body = `<p class="sub">אין שאלות בסינון הזה. ${qState.filter==="again"?"סמן נושאים כ'לחזור לזה' בעמודי הנושאים.":qState.filter==="miss"?"אין כרגע שאלות בחבילת הטעויות.":""}</p>`;
   view.innerHTML = `<div class="quiz">${head}${body}</div>`;
   view.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { qState.filter = b.dataset.f; renderQuiz(true); });
+  document.getElementById("qReset").onclick = () => { if (!confirm("לאפס את התרגול?\nחבילת השאלות שטעית בהן תימחק, והסבב יתחיל מחדש.\nהסימונים 'למדתי' ו'לחזור' יישארו.")) return; store.miss = {}; save(); qState.filter = "all"; renderQuiz(true); };
   view.querySelectorAll("[data-src]").forEach(b => b.onclick = () => { qState.source = b.dataset.src; renderQuiz(true); });
   view.querySelectorAll("[data-t]").forEach(b => b.onclick = () => go("t-" + b.dataset.t));
   renderScore();
@@ -1211,6 +1251,7 @@ function renderOverview(){
   </div>`;
   view.querySelectorAll("[data-t]").forEach(b => b.onclick = () => go("t-" + b.dataset.t));
   view.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+  view.querySelectorAll(".col.fut .col-head").forEach(h => h.onclick = () => h.parentElement.classList.toggle("open"));
 }
 
 /* ---------- space view: the same topics as a 3D constellation (optional) ---------- */
